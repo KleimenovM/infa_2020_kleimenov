@@ -207,6 +207,7 @@ def draw_guy(screen, face_center, face_radius, params):
     draw_shirt_and_arms(screen, face_center, face_radius, skin_color, shirt_color=params[0])
     draw_face(screen, face_center, face_radius, skin_color, hair_color=params[1], eyes_color=params[2])
     draw_label(screen)
+
     pass
 
 
