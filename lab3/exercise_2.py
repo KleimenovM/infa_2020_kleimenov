@@ -5,11 +5,29 @@ import numpy as np
 
 # - SPECIAL FUNCTIONS - SPECIAL FUNCTIONS - SPECIAL FUNCTIONS - SPECIAL FUNCTIONS -
 
-# draw an ellipse using its center and size parameters
 def draw_ellipse(screen, color, center, size):
     point = (int(center[0] - size[0]/2), int(center[1] - int(size[1]/2)))
     rectangle = [point[0], point[1], int(size[0]), int(size[1])]
-    ellipse(screen, color, rectangle)
+    ellipse(screen, color, rectangle, 0)
+    ellipse(screen, (0, 0, 0), rectangle, 1)
+    pass
+
+
+def draw_polygon(screen, color, points):
+    polygon(screen, color, points, 0)
+    polygon(screen, (0, 0, 0), points, 1)
+    pass
+
+
+def draw_circle(screen, color, center, radius):
+    circle(screen, color, center, radius, 0)
+    circle(screen, (0, 0, 0), center, radius, 1)
+    pass
+
+
+def draw_rect(screen, color, rectangle):
+    rect(screen, color, rectangle, 0)
+    rect(screen, (0, 0, 0), rectangle, 1)
     pass
 
 
@@ -91,7 +109,7 @@ def draw_mouth_and_nose(screen, position, face_radius):
     nose_height = int(0.15 * face_radius)
     nose_color = (150, 75, 0)  # brown
     nose_points = triangle_points(position, nose_width, nose_height)
-    polygon(screen, nose_color, nose_points)  # NOSE
+    draw_polygon(screen, nose_color, nose_points)  # NOSE
 
     # MOUTH
     mouth_width = int(0.9 * face_radius)
@@ -99,7 +117,7 @@ def draw_mouth_and_nose(screen, position, face_radius):
     vertical_shift = int(0.3 * face_radius)
     mouth_color = (240, 50, 50)  # light red
     mouth_points = triangle_points((position[0], position[1] + vertical_shift), mouth_width, mouth_height)
-    polygon(screen, mouth_color, mouth_points)  # MOUTH
+    draw_polygon(screen, mouth_color, mouth_points)  # MOUTH
 
     pass
 
@@ -112,14 +130,14 @@ def draw_hair(screen, position, face_radius):
     coordinates = get_hair_coordinates(hair_angle, hair_quantity, position, face_radius)
     for i in range(0, len(coordinates), 3):
         points = [coordinates[i], coordinates[i+1], coordinates[i+2]]
-        polygon(screen, hair_color, points)
+        draw_polygon(screen, hair_color, points)
     pass
 
 
 # face is a big skin-colored circle in the center of the picture
 def draw_face(screen, position, face_radius, skin_color):
 
-    circle(screen, skin_color, position, face_radius)
+    draw_circle(screen, skin_color, position, face_radius)
 
     draw_eyes(screen, position, face_radius)
 
@@ -146,7 +164,7 @@ def draw_sleeve(screen, shirt_color, shirt_radius, sleeve, shirt):
         x_shift, y_shift = shift(pentagon_radius, alpha + pentagon_angle * i)
         points.append((sleeve[0] + x_shift, sleeve[1] + y_shift))  # append pentagon point
 
-    polygon(screen, shirt_color, points)
+    draw_polygon(screen, shirt_color, points)
     pass
 
 
@@ -156,7 +174,7 @@ def draw_shirt_and_arms(screen, face_center, face_radius, skin_color):
     shirt_color = (255, 186, 0)  # almost orange
     shirt_radius = int(1.25 * face_radius)
     shirt_center = (face_center[0], face_center[1] + int(1.5 * shirt_radius))
-    circle(screen, shirt_color, shirt_center, shirt_radius)
+    draw_circle(screen, shirt_color, shirt_center, shirt_radius)
 
     # SLEEVES are two pentagons
     sleeve_angle = 60  # degrees between sleeve-vector and vertical line
@@ -193,7 +211,7 @@ def draw_label(screen):
     label_width = int((1 - 2 * indent) * canvas_size[0])
     label_height = int(0.13 * canvas_size[1])
     rectangle = [label_left_top[0], label_left_top[1], label_width, label_height]
-    rect(screen, label_color, rectangle)
+    draw_rect(screen, label_color, rectangle)
 
     # Now we should write a phrase on it!
     text_position = (int(label_left_top[0] + label_width/2), int(label_left_top[1] + label_height/2 + 10))
