@@ -9,7 +9,26 @@ import numpy as np
 def draw_ellipse(screen, color, center, size):
     point = (int(center[0] - size[0]/2), int(center[1] - int(size[1]/2)))
     rectangle = [point[0], point[1], int(size[0]), int(size[1])]
-    ellipse(screen, color, rectangle)
+    ellipse(screen, color, rectangle, 0)
+    ellipse(screen, (0, 0, 0), rectangle, 1)
+    pass
+
+
+def draw_polygon(screen, color, points):
+    polygon(screen, color, points, 0)
+    polygon(screen, (0, 0, 0), points, 1)
+    pass
+
+
+def draw_circle(screen, color, center, radius):
+    circle(screen, color, center, radius, 0)
+    circle(screen, (0, 0, 0), center, radius, 1)
+    pass
+
+
+def draw_rect(screen, color, rectangle):
+    rect(screen, color, rectangle, 0)
+    rect(screen, (0, 0, 0), rectangle, 1)
     pass
 
 
@@ -37,7 +56,6 @@ def shift(radius, alpha):
 
 
 # - FACE - FACE - FACE - FACE - FACE - FACE - FACE - FACE - FACE -
-
 
 # EYES. Are 2 light-blue colored ellipses
 def draw_eyes(screen, position, face_radius, eye_color):
@@ -90,7 +108,6 @@ def draw_mouth_and_nose(screen, position, face_radius):
     nose_height = int(0.15 * face_radius)
     nose_color = (150, 75, 0)  # brown
     nose_points = triangle_points(position, nose_width, nose_height)
-    polygon(screen, nose_color, nose_points)  # NOSE
 
     # MOUTH
     mouth_width = int(0.9 * face_radius)
@@ -98,7 +115,9 @@ def draw_mouth_and_nose(screen, position, face_radius):
     vertical_shift = int(0.3 * face_radius)
     mouth_color = (240, 50, 50)  # light red
     mouth_points = triangle_points((position[0], position[1] + vertical_shift), mouth_width, mouth_height)
-    polygon(screen, mouth_color, mouth_points)  # MOUTH
+
+    draw_polygon(screen, nose_color, nose_points)  # NOSE
+    draw_polygon(screen, mouth_color, mouth_points)  # MOUTH
 
     pass
 
@@ -110,26 +129,20 @@ def draw_hair(screen, position, face_radius, hair_color):
     coordinates = get_hair_coordinates(hair_angle, hair_quantity, position, face_radius)
     for i in range(0, len(coordinates), 3):
         points = [coordinates[i], coordinates[i+1], coordinates[i+2]]
-        polygon(screen, hair_color, points)
+        draw_polygon(screen, hair_color, points)
     pass
 
 
 # face is a big skin-colored circle in the center of the picture
 def draw_face(screen, position, face_radius, skin_color, eyes_color, hair_color):
-
-    circle(screen, skin_color, position, face_radius)
-
+    draw_circle(screen, skin_color, position, face_radius)
     draw_eyes(screen, position, face_radius, eyes_color)
-
     draw_mouth_and_nose(screen, position, face_radius)
-
     draw_hair(screen, position, face_radius, hair_color)
-
     return
 
 
 # - BODY - BODY - BODY - BODY - BODY - BODY - BODY - BODY - BODY -
-
 
 def draw_sleeve(screen, shirt_color, shirt_radius, sleeve, shirt):
     pentagon_radius = int(shirt_radius * 0.3)
@@ -144,16 +157,16 @@ def draw_sleeve(screen, shirt_color, shirt_radius, sleeve, shirt):
         x_shift, y_shift = shift(pentagon_radius, alpha + pentagon_angle * i)
         points.append((sleeve[0] + x_shift, sleeve[1] + y_shift))  # append pentagon point
 
-    polygon(screen, shirt_color, points)
+    draw_polygon(screen, shirt_color, points)
     pass
 
 
 # shirt is a big orange circle under the face
 def draw_shirt_and_arms(screen, face_center, face_radius, skin_color, shirt_color):
     # SHIRT is a big orange circle
-    shirt_radius = int(1.25 * face_radius)
-    shirt_center = (face_center[0], face_center[1] + int(1.5 * shirt_radius))
-    circle(screen, shirt_color, shirt_center, shirt_radius)
+    shirt_radius = round(1.25 * face_radius)
+    shirt_center = (face_center[0], face_center[1] + round(1.5 * shirt_radius))
+    draw_circle(screen, shirt_color, shirt_center, shirt_radius)
 
     # SLEEVES are two pentagons
     sleeve_angle = 60  # degrees between sleeve-vector and vertical line
@@ -186,15 +199,15 @@ def draw_label(screen):
     canvas_size = pygame.Surface.get_size(screen)
     indent = 0.01
     label_color = (0, 240, 0)
-    label_left_top = (int(indent * canvas_size[0]), 0)
-    label_width = int((1 - 2 * indent) * canvas_size[0])
-    label_height = int(0.13 * canvas_size[1])
+    label_left_top = (round(indent * canvas_size[0]), 0)
+    label_width = round((1 - 2 * indent) * canvas_size[0])
+    label_height = round(0.13 * canvas_size[1])
     rectangle = [label_left_top[0], label_left_top[1], label_width, label_height]
-    rect(screen, label_color, rectangle)
+    draw_rect(screen, label_color, rectangle)
 
     # Now we should write a phrase on it!
-    text_position = (int(label_left_top[0] + label_width/2), int(label_left_top[1] + label_height/2))
-    f = pygame.font.Font(None, 80)
+    text_position = (round(label_left_top[0] + label_width/2), round(label_left_top[1] + label_height/2))
+    f = pygame.font.Font(None, 90)
     text = f.render('PYTHON is REALLY AMAZING!', 1, (0, 0, 0))
     place = text.get_rect(center=text_position)
     screen.blit(text, place)
@@ -203,19 +216,23 @@ def draw_label(screen):
 
 # - THE WHOLE GUY - THE WHOLE GUY - THE WHOLE GUY - THE WHOLE GUY - THE WHOLE GUY -
 def draw_guy(screen, face_center, face_radius, params):
+    """
+    Draws a guy
+    :param screen: surface
+    :param face_center: pair of coordinates, that defines face center
+    :param face_radius: length of face radius
+    :param params: special array: [t-shirt color (r, g, b), hair color, eyes color]
+    """
     skin_color = (233, 192, 159)
     draw_shirt_and_arms(screen, face_center, face_radius, skin_color, shirt_color=params[0])
     draw_face(screen, face_center, face_radius, skin_color, hair_color=params[1], eyes_color=params[2])
-    draw_label(screen)
-
     pass
 
 
 def main():
     # let the program begin
     pygame.init()
-    width = 1027
-    height = 539
+    width, height = 1027, 539
     screen = pygame.display.set_mode((width, height))
 
     # main settings
@@ -231,9 +248,10 @@ def main():
                (200, 0, 200),  # hair color
                (200, 225, 255)]  # eyes color
 
-    face_radius = int(height/3.5)
+    face_radius = round(height/3.5)
     draw_guy(screen, position1, face_radius, params1)
     draw_guy(screen, position2, face_radius, params2)
+    draw_label(screen)
 
     # final part of the program
     pygame.display.update()
