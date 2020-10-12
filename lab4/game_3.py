@@ -22,7 +22,6 @@ def define_vel(dim):
     return velocity
 
 
-
 def create_ball(screen):
     """
     Creates a new ball on screen
