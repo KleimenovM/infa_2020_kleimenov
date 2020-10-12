@@ -13,6 +13,21 @@ def define_vel(dim):
     return velocity
 
 
+def create_square(screen):
+    length, height = screen.get_size()
+    diagonal = pythagorean(length, height)
+    size = randint(diagonal//50, diagonal//10)
+    x = randint(0 + size, length - size)
+    y = randint(0 + size, height - size)
+    vel_x = define_vel(length)
+    vel_y = define_vel(height)
+
+    color = [randint(200, 255), 0, 0]
+
+    rect(screen, color, (x, y, size, size))
+    return x, y, size, vel_x, vel_y, color
+
+
 def create_ball(screen):
     """
     Creates a new ball on screen
@@ -29,11 +44,11 @@ def create_ball(screen):
     vel_x = define_vel(length)
     vel_y = define_vel(height)
 
-    color = [randint(0, 255), randint(0, 255), randint(0, 255)]
+    color = [randint(150, 200), randint(150, 200), randint(150, 200)]
 
     circle(screen, color, (x, y), r)
 
-    return x, y, r, vel_x, vel_y, color
+    return [x, y, r, vel_x, vel_y, color]
 
 
 def ball_shift(screen, ball_params):
@@ -47,6 +62,29 @@ def ball_shift(screen, ball_params):
 
     circle(screen, color, (x, y), rad)
     return ball_params
+
+
+def square_shift(screen, square_params):
+    x, y, size, vel_x, vel_y, color = square_params
+    s_x, s_y = screen.get_size()
+    if x - size <= 0 or x + size >= s_x:
+        vel_x = int(-random() * randint(1, 3) * vel_x)
+    if y - size <= 0 or y + size >= s_y:
+        vel_y = int(-random() * randint(1, 3) * vel_y)
+
+    if random() > 0.37:
+        vel_x = vel_x + randint(-5, 5)
+        vel_y = vel_y + randint(-5, 5)
+
+    if x < 0 or x > s_x:
+        x = s_x // 2
+    if y < 0 or y > s_y:
+        y = s_y // 2
+
+    square_params = x + vel_x, y + vel_y, size, vel_x, vel_y, color
+
+    rect(screen, color, (x, y, size, size))
+    return square_params
 
 
 def click(event, ball_xyr):
@@ -67,40 +105,40 @@ def click(event, ball_xyr):
 
 
 def main():
-    ball_quantity = int(input('Сколько шаров? '))
+    b_q = int(input('Сколько шаров? '))
+    s_q = int(input('А квадратов? '))
 
     pygame.init()
 
-    fps = 30
-    screen = pygame.display.set_mode((800, 600))
+    fps = 24
+    screen = pygame.display.set_mode((1200, 750))
 
     pygame.display.update()
     clock = pygame.time.Clock()
     finished = False
-    ball_params = []
-    for i in range(ball_quantity):
-        ball_params.append(create_ball(screen))
+    counter = 0
+    print(counter)
+    ball_params = [create_ball(screen) for i in range(b_q)]
+    square_params = [create_square(screen) for i in range(s_q)]
 
     while not finished:
         clock.tick(fps)
-        to_del = []
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 finished = True
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 for s in range(len(ball_params)):
-                    if click(event, ball_params[s]) == 1:
-                        to_del.append(s)
-        new_params = []
-        for t in range(len(ball_params)):
-            if to_del.count(t) == 0:
-                new_params.append(ball_shift(screen, ball_params[t]))
-        ball_params = new_params
+                    prev_counter = counter
+                    counter += click(event, ball_params[s])
+                    if counter != prev_counter:
+                        print(counter)
+
+        for i in range(len(ball_params)):
+            ball_params[i] = ball_shift(screen, ball_params[i])
+        for j in range(len(square_params)):
+            square_params[j] = square_shift(screen, square_params[j])
         pygame.display.update()
         screen.fill((255, 255, 255))
-
-        if len(ball_params) == 0:
-            finished = True
 
     pygame.quit()
     return
