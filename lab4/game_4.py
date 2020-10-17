@@ -16,7 +16,7 @@ def define_vel(dim):
 def create_square(screen):
     length, height = screen.get_size()
     diagonal = pythagorean(length, height)
-    size = randint(diagonal//50, diagonal//10)
+    size = randint(diagonal//50, diagonal//20)
     x = randint(0 + size, length - size)
     y = randint(0 + size, height - size)
     vel_x = define_vel(length)
@@ -104,15 +104,28 @@ def click(event, ball_xyr):
         return 1
 
 
-def main():
-    b_q = int(input('Сколько шаров? '))
-    s_q = int(input('А квадратов? '))
+def click_square(event, square_params):
+    s_x, s_y, size, vel_x, vel_y, color = square_params
+    x, y = event.pos
+    if s_x - size <= x <= s_x + size and s_y - size <= y <= s_y + size:
+        return 5
+    else:
+        return 0
 
-    pygame.init()
 
-    fps = 24
-    screen = pygame.display.set_mode((1200, 750))
+def write_data(name, counter):
+    x = open('rating.txt', 'r+')
+    data = x.readlines()
+    for i in range(len(data)):
+        data[i] = [data[i].strip().split('-')]
+        data[i][1] = int(data[i][1])
+    print(data)
+    x.write(name + ' - ' + str(counter))
+    x.close()
+    pass
 
+
+def game(fps, screen, b_q, s_q):
     pygame.display.update()
     clock = pygame.time.Clock()
     finished = False
@@ -132,13 +145,43 @@ def main():
                     counter += click(event, ball_params[s])
                     if counter != prev_counter:
                         print(counter)
+                for o in range(len(square_params)):
+                    prev_counter = counter
+                    counter += click_square(event, square_params[o])
 
-        for i in range(len(ball_params)):
-            ball_params[i] = ball_shift(screen, ball_params[i])
+        for p in range(len(ball_params)):
+            ball_params[p] = ball_shift(screen, ball_params[p])
         for j in range(len(square_params)):
             square_params[j] = square_shift(screen, square_params[j])
         pygame.display.update()
         screen.fill((255, 255, 255))
+        if pygame.time.get_ticks() > 10 * 1000:
+            finished = True
+    return counter
+
+
+def main():
+    name = input('Enter your name: ')
+    hard = int(input('Level (5 - the hardest, 1 - the easiest): '))
+    if hard > 5:
+        hard = 5
+    elif hard < 1:
+        hard = 1
+    b_q = (6 - hard) * 3
+    s_q = (6 - hard)
+
+    pygame.init()
+
+    time = 0
+    fps = 24
+    screen = pygame.display.set_mode((1200, 750))
+
+    # counter = game(fps, screen, b_q, s_q)
+    counter = randint(1, 50)
+
+    write_data(name, counter)
+
+    print(name + ', your result: ' + str(counter) + '\n')
 
     pygame.quit()
     return
