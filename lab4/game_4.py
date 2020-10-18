@@ -113,15 +113,54 @@ def click_square(event, square_params):
         return 0
 
 
-def write_data(name, counter):
-    x = open('rating.txt', 'r+')
+def work_with_data(data):
+    all_participants = []
+
+    next_lev = []
+    for part in data:
+        if part.strip()[:2] == '- ':
+            if len(next_lev) != 0:
+                all_participants.append(next_lev)
+            next_lev = [len(all_participants) + 1]
+        else:
+            part = part.strip().split(': ')
+            next_lev.append([part[0], int(part[1])])
+    all_participants.append(next_lev)
+
+    return all_participants
+
+
+def organize_data(level):
+    writing_data = ['- level ' + str(level[0]) + ' -']
+    level.remove(level[0])
+    level.sort(key=lambda i: i[1], reverse=1)
+    level.insert(0, writing_data)
+    return level
+
+
+def write_data(name, counter, level):
+    x = open('rating.txt', 'r')
     data = x.readlines()
-    for i in range(len(data)):
-        data[i] = [data[i].strip().split('-')]
-        data[i][1] = int(data[i][1])
-    print(data)
-    x.write(name + ' - ' + str(counter))
     x.close()
+
+    data.remove(data[0])  # cross out info-line
+    data = work_with_data(data)
+
+    data[level-1].append([name, counter])
+
+    x = open('rating.txt', 'w')
+    x.write('# --- Rating file ---' + '\n')
+
+    for level in data:
+        level = organize_data(level)
+        for j in level:
+            if len(j) == 1:
+                x.write(j[0] + '\n')
+            else:
+                x.write(j[0] + ': ' + str(j[1]) + '\n')
+
+    x.close()
+
     pass
 
 
@@ -141,12 +180,8 @@ def game(fps, screen, b_q, s_q):
                 finished = True
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 for s in range(len(ball_params)):
-                    prev_counter = counter
                     counter += click(event, ball_params[s])
-                    if counter != prev_counter:
-                        print(counter)
                 for o in range(len(square_params)):
-                    prev_counter = counter
                     counter += click_square(event, square_params[o])
 
         for p in range(len(ball_params)):
@@ -162,24 +197,23 @@ def game(fps, screen, b_q, s_q):
 
 def main():
     name = input('Enter your name: ')
-    hard = int(input('Level (5 - the hardest, 1 - the easiest): '))
-    if hard > 5:
-        hard = 5
-    elif hard < 1:
-        hard = 1
-    b_q = (6 - hard) * 3
-    s_q = (6 - hard)
+    level = int(input('Level (5 - the hardest, 1 - the easiest): '))
+    if level > 5:
+        level = 5
+    elif level < 1:
+        level = 1
+    b_q = (6 - level) * 3
+    s_q = (6 - level)
 
     pygame.init()
 
     time = 0
     fps = 24
-    screen = pygame.display.set_mode((1200, 750))
+    screen = pygame.display.set_mode((1200, 800))
 
-    # counter = game(fps, screen, b_q, s_q)
-    counter = randint(1, 50)
+    counter = game(fps, screen, b_q, s_q)
 
-    write_data(name, counter)
+    write_data(name, counter, level)
 
     print(name + ', your result: ' + str(counter) + '\n')
 
