@@ -199,6 +199,14 @@ def write_data(name, counter, level):
 
 
 def game(fps, screen, b_q, s_q):
+    """
+
+    :param fps:
+    :param screen:
+    :param b_q:
+    :param s_q:
+    :return:
+    """
     pygame.display.update()
     clock = pygame.time.Clock()
     finished = False
