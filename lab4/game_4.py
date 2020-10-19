@@ -148,6 +148,11 @@ def click_square(event, square_params):
 
 
 def work_with_data(data):
+    """
+
+    :param data:
+    :return:
+    """
     all_participants = []
 
     next_lev = []
@@ -165,14 +170,29 @@ def work_with_data(data):
 
 
 def organize_data(level):
+    """
+
+    :param level:
+    :return:
+    """
     writing_data = ['- level ' + str(level[0]) + ' -']
     level.remove(level[0])
     level.sort(key=lambda i: i[1], reverse=1)
+    if len(level) > 4:
+        for i in range(len(level)):
+            level.remove(level[len(level) - 1 - i])
     level.insert(0, writing_data)
     return level
 
 
 def write_data(name, counter, level):
+    """
+
+    :param name:
+    :param counter:
+    :param level:
+    :return:
+    """
     x = open('rating.txt', 'r')
     data = x.readlines()
     x.close()
@@ -198,6 +218,43 @@ def write_data(name, counter, level):
     pass
 
 
+def show_time_and_count(screen, time, ticks, counter):
+    """
+
+    :param screen:
+    :param time:
+    :param ticks:
+    :param counter:
+    :return:
+    """
+    counter_font = pygame.font.Font(None, 70)
+    counter_text = counter_font.render(str(counter), 1, (0, 0, 0))
+    place = counter_text.get_rect(center=(round(screen.get_width()*0.015), 20))
+    screen.blit(counter_text, place)
+
+    time_font = pygame.font.Font(None, 70)
+    time_what = str((time - ticks)//1000) + ':' + str((time - ticks) % 1000)
+    time_text = time_font.render(time_what, 1, (0, 0, 0))
+    place = time_text.get_rect(center=(round(screen.get_width()*0.95), 20))
+    screen.blit(time_text, place)
+    pass
+
+
+def last_text(screen, counter):
+    """
+
+    :param screen:
+    :param counter:
+    :return:
+    """
+    screen.fill((255, 255, 255))
+    font = pygame.font.Font(None, 150)
+    text = font.render('Game over. Your score is ' + str(counter), 1, (0, 0, 0))
+    place = text.get_rect(center=(round(screen.get_width() * 0.5), round(screen.get_height() * 0.5)))
+    screen.blit(text, place)
+    pass
+
+
 def game(fps, screen, b_q, s_q):
     """
 
@@ -211,20 +268,25 @@ def game(fps, screen, b_q, s_q):
     clock = pygame.time.Clock()
     finished = False
     counter = 0
-    print(counter)
     ball_params = [create_ball(screen) for i in range(b_q)]
     square_params = [create_square(screen) for i in range(s_q)]
 
+    time = 10 * 1000
+
     while not finished:
         clock.tick(fps)
+        show_time_and_count(screen, time, pygame.time.get_ticks(), counter)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 finished = True
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 for s in range(len(ball_params)):
-                    counter += click(event, ball_params[s])
+                    add = click(event, ball_params[s])
+                    counter += add
+                    time += 100 * add
                 for o in range(len(square_params)):
-                    counter += click_square(event, square_params[o])
+                    add = click_square(event, square_params[o])
+                    time += 100 * add
 
         for p in range(len(ball_params)):
             ball_params[p] = ball_shift(screen, ball_params[p])
@@ -232,8 +294,11 @@ def game(fps, screen, b_q, s_q):
             square_params[j] = square_shift(screen, square_params[j])
         pygame.display.update()
         screen.fill((255, 255, 255))
-        if pygame.time.get_ticks() > 10 * 1000:
+        if pygame.time.get_ticks() > time:
             finished = True
+
+    last_text(screen, counter)
+
     return counter
 
 

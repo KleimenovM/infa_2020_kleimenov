@@ -1,0 +1,7 @@
+# --- Rating file ---
+- level 1 -
+- level 2 -
+max: 4
+- level 3 -
+- level 4 -
+- level 5 -
