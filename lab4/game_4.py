@@ -248,10 +248,12 @@ def last_text(screen, counter):
     :return:
     """
     screen.fill((255, 255, 255))
-    font = pygame.font.Font(None, 150)
+    font = pygame.font.Font(None, 100)
     text = font.render('Game over. Your score is ' + str(counter), 1, (0, 0, 0))
     place = text.get_rect(center=(round(screen.get_width() * 0.5), round(screen.get_height() * 0.5)))
     screen.blit(text, place)
+    pygame.display.update()
+    pygame.time.delay(1500)
     pass
 
 
@@ -286,6 +288,7 @@ def game(fps, screen, b_q, s_q):
                     time += 100 * add
                 for o in range(len(square_params)):
                     add = click_square(event, square_params[o])
+                    counter += add
                     time += 100 * add
 
         for p in range(len(ball_params)):
@@ -297,6 +300,7 @@ def game(fps, screen, b_q, s_q):
         if pygame.time.get_ticks() > time:
             finished = True
 
+    clock.tick(fps)
     last_text(screen, counter)
 
     return counter
