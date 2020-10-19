@@ -4,16 +4,32 @@ from random import *
 
 
 def pythagorean(x, y):
+    """
+
+    :param x:
+    :param y:
+    :return:
+    """
     length = (x**2 + y**2)**0.5
     return round(length)
 
 
 def define_vel(dim):
+    """
+
+    :param dim:
+    :return:
+    """
     velocity = randint(dim // 200, dim // 35) * (-1)**randint(1, 2)
     return velocity
 
 
 def create_square(screen):
+    """
+
+    :param screen:
+    :return:
+    """
     length, height = screen.get_size()
     diagonal = pythagorean(length, height)
     size = randint(diagonal//50, diagonal//20)
@@ -52,6 +68,12 @@ def create_ball(screen):
 
 
 def ball_shift(screen, ball_params):
+    """
+
+    :param screen:
+    :param ball_params:
+    :return:
+    """
     x, y, rad, vel_x, vel_y, color = ball_params
     s_x, s_y = screen.get_size()
     if x - rad <= 0 or x + rad >= s_x:
@@ -65,6 +87,12 @@ def ball_shift(screen, ball_params):
 
 
 def square_shift(screen, square_params):
+    """
+
+    :param screen:
+    :param square_params:
+    :return:
+    """
     x, y, size, vel_x, vel_y, color = square_params
     s_x, s_y = screen.get_size()
     if x - size <= 0 or x + size >= s_x:
@@ -105,6 +133,12 @@ def click(event, ball_xyr):
 
 
 def click_square(event, square_params):
+    """
+
+    :param event:
+    :param square_params:
+    :return:
+    """
     s_x, s_y, size, vel_x, vel_y, color = square_params
     x, y = event.pos
     if s_x - size <= x <= s_x + size and s_y - size <= y <= s_y + size:
@@ -207,7 +241,6 @@ def main():
 
     pygame.init()
 
-    time = 0
     fps = 24
     screen = pygame.display.set_mode((1200, 800))
 
