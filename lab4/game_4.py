@@ -17,7 +17,7 @@ def pythagorean(x, y):
 def define_vel(dim):
     """
 
-    :param dim:
+    :param dim: dimensional given
     :return:
     """
     velocity = randint(dim // 200, dim // 35) * (-1)**randint(1, 2)
@@ -177,7 +177,7 @@ def organize_data(level):
     """
     writing_data = ['- level ' + str(level[0]) + ' -']
     level.remove(level[0])
-    level.sort(key=lambda i: i[1], reverse=1)
+    level.sort(key=lambda j: j[1], reverse=1)
     if len(level) > 4:
         for i in range(len(level)):
             level.remove(level[len(level) - 1 - i])
@@ -291,8 +291,8 @@ def game(fps, screen, b_q, s_q):
                     counter += add
                     time += 100 * add
 
-        for p in range(len(ball_params)):
-            ball_params[p] = ball_shift(screen, ball_params[p])
+        for k in range(len(ball_params)):
+            ball_params[k] = ball_shift(screen, ball_params[k])
         for j in range(len(square_params)):
             square_params[j] = square_shift(screen, square_params[j])
         pygame.display.update()

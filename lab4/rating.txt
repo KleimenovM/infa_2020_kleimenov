@@ -1,10 +1,15 @@
 # --- Rating file ---
 - level 1 -
+john: 43
 - level 2 -
+max: 81
 max: 4
+john: 1
 - level 3 -
+bill: 15
 - level 4 -
 hugo: 26
 - level 5 -
 max: 10
+max: 8
 max: 2

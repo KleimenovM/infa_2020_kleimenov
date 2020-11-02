@@ -71,6 +71,7 @@ def draw_eyes(screen, position, face_radius, eye_color):
     for center in centers:
         draw_ellipse(screen, eye_color, center, eye_size)  # one eye
         draw_ellipse(screen, pupil_color, center, pupil_size)  # one pupil
+        draw_hair(screen, center, 0.4 * face_radius // 2, (0, 0, 0))
 
     pass
 
@@ -124,7 +125,7 @@ def draw_mouth_and_nose(screen, position, face_radius):
 
 # hair consists of a number of purple triangles
 def draw_hair(screen, position, face_radius, hair_color):
-    hair_angle = 160  # degrees
+    hair_angle = 120  # degrees
     hair_quantity = 10
     coordinates = get_hair_coordinates(hair_angle, hair_quantity, position, face_radius)
     for i in range(0, len(coordinates), 3):
@@ -134,8 +135,11 @@ def draw_hair(screen, position, face_radius, hair_color):
 
 
 # face is a big skin-colored circle in the center of the picture
-def draw_face(screen, position, face_radius, skin_color, eyes_color, hair_color):
-    draw_circle(screen, skin_color, position, face_radius)
+def draw_face(screen, position, face_radius, skin_color, eyes_color, hair_color, face_shape):
+    if face_shape == 'circle':
+        draw_circle(screen, skin_color, position, face_radius)
+    else:
+        draw_ellipse(screen, skin_color, (position[0], position[1] + 10), (face_radius*2*0.9, face_radius*2*1.1))
     draw_eyes(screen, position, face_radius, eyes_color)
     draw_mouth_and_nose(screen, position, face_radius)
     draw_hair(screen, position, face_radius, hair_color)
@@ -225,7 +229,8 @@ def draw_guy(screen, face_center, face_radius, params):
     """
     skin_color = (233, 192, 159)
     draw_shirt_and_arms(screen, face_center, face_radius, skin_color, shirt_color=params[0])
-    draw_face(screen, face_center, face_radius, skin_color, hair_color=params[1], eyes_color=params[2])
+    draw_face(screen, face_center, face_radius, skin_color, hair_color=params[1],
+              eyes_color=params[2], face_shape=params[3])
     pass
 
 
@@ -241,12 +246,14 @@ def main():
     position1 = (int(width/4), int(height/2))
     params1 = [(0, 150, 0),  # t-shirt color
                (200, 200, 0),  # hair color
-               (135, 214, 185)]  # eyes color
+               (135, 214, 185),  # eyes color
+               'circle']  # face shape
 
     position2 = (int(3 * width/4), int(height/2))
     params2 = [(200, 200, 0),  # t-shirt color
                (200, 0, 200),  # hair color
-               (200, 225, 255)]  # eyes color
+               (200, 225, 255),  # eyes color
+               'ellipse']  # face shape
 
     face_radius = round(height/3.5)
     draw_guy(screen, position1, face_radius, params1)
