@@ -151,7 +151,9 @@ class Target:
         """ Инициализация новой цели. """
         self.x = rnd(600, 780)
         self.y = rnd(300, 550)
-        self.r = rnd(2, 50)
+        self.r = rnd(5, 50)
+        self.vx = rnd(1, 7)
+        self.vy = rnd(1, 7)
         color = self.color = 'red'
         canvas.coords(self.id, self.x - self.r, self.y - self.r, self.x + self.r, self.y + self.r)
         canvas.itemconfig(self.id, fill=color)
@@ -161,6 +163,28 @@ class Target:
         canvas.coords(self.id, -10, -10, -10, -10)
         self.points += points
         canvas.itemconfig(self.id_points, text=self.points)
+
+    def move(self):
+        if self.x >= 800:
+            self.vx = -abs(get_vel(self.vx))
+        elif self.x <= 0:
+            self.vx = abs(get_vel(self.vx))
+        if self.y >= 600:
+            self.vy = abs(get_vel(self.vy))
+            self.vx = get_vel(self.vx)
+        elif self.y <= 0:
+            self.vy = -abs(get_vel(self.vy))
+        self.x += self.vx
+        self.y -= self.vy
+
+    def set_coordinates(self):
+        canvas.coords(
+            self.id,
+            self.x - self.r,
+            self.y - self.r,
+            self.x + self.r,
+            self.y + self.r
+        )
 
 
 t1 = Target()
@@ -195,6 +219,9 @@ def new_game():
     t1.live, t2.live = 1, 1
     while targets[1].live or targets[0].live or balls:
         for t in targets:
+            t.move()
+            if t.live == 1:
+                t.set_coordinates()
             for b in balls:
                 if not b.alive:
                     balls.remove(b)
