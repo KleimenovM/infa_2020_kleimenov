@@ -27,6 +27,8 @@ def mod_abs(one, two):
 
 
 def define_angle(dy, dx):
+    if dx == 0:
+        dx += 10**(-5)
     angle = math.atan(dy / dx)
     if dx < 0:
         angle -= math.pi
