@@ -82,7 +82,7 @@ class Ball:
             self.vx = get_vel(k * self.vx)
         self.x += self.vx
         self.y -= self.vy
-        self.vy = self.vy - G*2*delta_t
+        self.vy = self.vy - G * 2 * Delta_t
         if self.vx**2 + self.vy**2 < 0.5:
             self.vx = self.vy = 0
             canvas.delete(self.id)
@@ -179,6 +179,9 @@ class Gun:
         self.y = 450
         self.id = canvas.create_line(self.x, self.y, self.x + 20, self.y + 20, width=5)
         self.kx, self.ky = 1, 1
+        self.hp = 10
+        self.print_hp = canvas
+        self.alive = True
 
     def fire2_start(self, event):
         self.f2_on = 1
@@ -188,7 +191,7 @@ class Gun:
         Происходит при отпускании кнопки мыши.
         Начальные значения компонент скорости мяча vx и vy зависят от положения мыши.
         """
-        global balls, Bullet
+        global Balls, Bullet
         Bullet += 1
         new_ball = Ball(self.x + mod_abs(self.f2_power, 20) * math.cos(self.an),
                         self.y + mod_abs(self.f2_power, 20) * math.sin(self.an))
@@ -196,7 +199,7 @@ class Gun:
         self.an = define_angle(event.y - self.y, event.x - self.x)
         new_ball.vx = self.f2_power * math.cos(self.an)
         new_ball.vy = - self.f2_power * math.sin(self.an)
-        balls += [new_ball]
+        Balls += [new_ball]
         self.f2_on = 0
         self.f2_power = 10
 
@@ -206,7 +209,7 @@ class Gun:
         :param event:
         :return:
         """
-        global bombs, Bullet
+        global Bombs, Bullet
         Bullet += 1
         new_bomb = Bomb(self.x + mod_abs(self.f2_power, 20) * math.cos(self.an),
                         self.y + mod_abs(self.f2_power, 20) * math.sin(self.an))
@@ -214,7 +217,7 @@ class Gun:
         self.an = define_angle(event.y - self.y, event.x - self.x)
         new_bomb.vx = self.f2_power * math.cos(self.an)
         new_bomb.vy = - self.f2_power * math.sin(self.an)
-        bombs += [new_bomb]
+        Bombs += [new_bomb]
         self.f2_on = 0
         self.f2_power = 10
 
@@ -242,6 +245,14 @@ class Gun:
     def move(self):
         self.x += self.kx * 3
         self.y += self.ky * 3
+        if self.x < 20:
+            self.x = 20
+        elif self.x > 780:
+            self.x = 780
+        if self.y < 20:
+            self.y = 20
+        elif self.y > 580:
+            self.y = 580
         canvas.coords(self.id, self.x, self.y,
                       self.x + max(self.f2_power, 20) * math.cos(self.an),
                       self.y + max(self.f2_power, 20) * math.sin(self.an)
@@ -262,6 +273,14 @@ class Gun:
     def move_down(self, event):
         self.kx, self.ky = 0, 1
         self.move()
+
+    def drop_shot(self):
+        global Drops
+        for d in Drops:
+            if d.vicinity(self):
+                self.hp -= 1
+            if self.hp < 1:
+                self.alive = False
 
 
 class Target1:
@@ -327,8 +346,8 @@ class Target2:
 
     def move(self):
         accel = rnd(-10, 10)
-        self.vx += accel*delta_t
-        self.vy += accel*delta_t
+        self.vx += accel * Delta_t
+        self.vy += accel * Delta_t
         if self.x >= 800:
             self.vx = -abs(get_vel(self.vx))
         elif self.x <= 0:
@@ -351,13 +370,71 @@ class Target2:
         )
 
 
+class Cloud:
+    def __init__(self):
+        self.x = randint(1, 550)
+        self.y = randint(10, 80)
+        self.vx = rnd(-7, 7)
+        self.len = randint(100, 250)
+        self.period = randint(25, 50)
+        self.id = canvas.create_rectangle(self.x, self.y, self.x + self.len, self.y + 10)
+
+    def move(self):
+        if self.x + self.len > 800:
+            self.vx = -abs(self.vx)
+        elif self.x < 0:
+            self.vx = abs(self.vx)
+        self.x += self.vx
+        canvas.coords(self.id, self.x, self.y, self.x + self.len, self.y + 10)
+
+    def drop(self, t, gun):
+        global Drops
+        if t % self.period == 0:
+            d = CloudDrop(self.x+self.len/2, self.y, gun)
+            Drops.append(d)
+
+
+class CloudDrop:
+    def __init__(self, x, y, tar):
+        self.x, self.y = x, y
+        self.r = 5
+        self.alive = True
+        self.id = canvas.create_oval(self.x - self.r, self.y - self.r,
+                                     self.x + self.r, self.y + self.r)
+        self.vy = 0
+        per = (2 * abs(self.y - tar.y) / G / Delta_t) ** 0.5
+        self.vx = (tar.x + 5 - self.x) / per
+
+    def move(self):
+        self.x += self.vx
+        self.y += self.vy
+        self.vy += G * Delta_t
+        canvas.coords(self.id,
+                      self.x - self.r, self.y - self.r,
+                      self.x + self.r, self.y + self.r)
+        if self.y > 600:
+            canvas.delete(self.id)
+            self.alive = False
+
+    def vicinity(self, gun):
+        if abs(self.x - (gun.x+5)) < 10 and abs(self.y - gun.y) < 10:
+            canvas.delete(self.id)
+            self.alive = False
+            return True
+        else:
+            return False
+
+
 screen1 = canvas.create_text(400, 300, text='', font='28')
-g1 = Gun()
+Score = 0
+G1 = 0
 Bullet = 0
-balls = []
-bombs = []
-targets = []
-delta_t = 0.035
+Balls = []
+Bombs = []
+Targets = []
+Clouds = []
+Drops = []
+Delta_t = 0.035
 
 
 def txt_line(bullet):
@@ -371,6 +448,36 @@ def txt_line(bullet):
     return 'Вы уничтожили цели за ' + str(bullet) + ' ' + vys
 
 
+def create_targets():
+    global Targets, Balls, Bombs, Bullet
+    Bullet = 0
+    Balls = []
+    Bombs = []
+    Targets = []
+    for i in range(randint(3, 7)):
+        if randint(1, 2) == 1:
+            t = Target1()
+        else:
+            t = Target2()
+        t.live = 1
+        Targets.append(t)
+    return
+
+
+def create_clouds():
+    global Clouds, Drops
+    for i in Clouds:
+        canvas.delete(i.id)
+    for i in Drops:
+        canvas.delete(i.id)
+    Clouds = []
+    Drops = []
+    for i in range(randint(2, 3)):
+        item = Cloud()
+        Clouds.append(item)
+    return
+
+
 def alive_or_not(tars):
     alive = 0
     for t in tars:
@@ -381,54 +488,65 @@ def alive_or_not(tars):
         return False
 
 
-def new_game():
-    global g1, targets, screen1, balls, Bullet, bombs
-    targets = []
-    for i in range(randint(3, 7)):
-        if randint(1, 2) == 1:
-            t = Target1()
-        else:
-            t = Target2()
-        t.live = 1
-        targets.append(t)
-    Bullet = 0
-    balls = []
-    bombs = []
-    canvas.bind('<Motion>', g1.targetting)
-    k = 0
+def text():
+    canvas.create_text(400, 300, text='Партия окончена. Ваша пушка умерла', font='28')
 
-    while alive_or_not(targets) or balls or bombs:
-        for t in targets:
+
+def new_game():
+    canvas.delete("all")
+    global G1, Targets, screen1, Balls, Bullet, Bombs, Clouds, Drops, Score
+    G1 = Gun()
+    canvas.bind('<Motion>', G1.targetting)
+    k = 0
+    time_for_drops = 0
+
+    create_clouds()
+    create_targets()
+
+    while alive_or_not(Targets) or Balls or Bombs:
+        time_for_drops += 1
+        for t in Targets:
             t.move()
             if t.live == 1:
                 t.set_coordinates()
-            for bullets in [balls, bombs]:
+            for bullets in [Balls, Bombs]:
                 for b in bullets:
                     if not b.alive:
                         bullets.remove(b)
                     b.move()
                     b.set_coordinates()
                     if b.hit_test(t) and t.live == 1:
+                        Score += 1
                         t.live = 0
                         t.hit()
-            if not alive_or_not(targets):
+            if not alive_or_not(Targets):
                 if k == 0:
                     canvas.itemconfig(screen1, text=txt_line(Bullet))
                 k += 1
+        for c in Clouds:
+            c.move()
+            c.drop(time_for_drops, G1)
+        for d in Drops:
+            d.move()
+            if not d.alive:
+                Drops.remove(d)
+        G1.drop_shot()
         canvas.update()
-        canvas.bind('<Button-1>', g1.fire2_start)
-        canvas.bind('<Button-3>', g1.fire2_start)
-        canvas.bind('<Motion>', g1.targetting)
-        g1.power_up()
-        canvas.bind('<ButtonRelease-1>', g1.fire2_end)
-        canvas.bind('<ButtonRelease-3>', g1.fire_another)
-        root.bind('w', g1.move_up)
-        root.bind('a', g1.move_left)
-        root.bind('s', g1.move_down)
-        root.bind('d', g1.move_right)
-        time.sleep(delta_t)
-    canvas.itemconfig(screen1, text='')
-    canvas.delete(Gun)
+        canvas.bind('<Button-1>', G1.fire2_start)
+        canvas.bind('<Button-3>', G1.fire2_start)
+        canvas.bind('<Motion>', G1.targetting)
+        G1.power_up()
+        canvas.bind('<ButtonRelease-1>', G1.fire2_end)
+        canvas.bind('<ButtonRelease-3>', G1.fire_another)
+        root.bind('w', G1.move_up)
+        root.bind('a', G1.move_left)
+        root.bind('s', G1.move_down)
+        root.bind('d', G1.move_right)
+        time.sleep(Delta_t)
+        if not G1.alive:
+            # canvas.itemconfig(screen1, text='Партия окончена. Ваша пушка умерла')
+            Score = 0
+            # break
     root.after(5000, new_game())
     return
 
