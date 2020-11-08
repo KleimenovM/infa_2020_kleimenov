@@ -19,10 +19,23 @@ def get_vel(vel):
         return vel
 
 
-class Ball:
-    def __init__(self, x=40, y=450):
-        """ Конструктор класса ball
+def mod_abs(one, two):
+    if abs(one) > abs(two):
+        return one
+    else:
+        return two
 
+
+def define_angle(dy, dx):
+    angle = math.atan(dy / dx)
+    if dx < 0:
+        angle -= math.pi
+    return angle
+
+
+class Ball:
+    def __init__(self, x, y):
+        """ Конструктор класса ball
         Args:
         x - начальное положение мяча по горизонтали
         y - начальное положение мяча по вертикали
@@ -54,7 +67,6 @@ class Ball:
 
     def move(self):
         """Переместить мяч по прошествии единицы времени.
-
         Метод описывает перемещение мяча за один кадр перерисовки. То есть, обновляет значения
         self.x и self.y с учетом скоростей self.vx и self.vy, силы гравитации, действующей на мяч,
         и стен по краям окна (размер окна 800х600)."""
@@ -76,7 +88,6 @@ class Ball:
 
     def hit_test(self, obj):
         """Функция проверяет сталкивалкивается ли данный обьект с целью, описываемой в обьекте obj.
-
         Args:
             obj: Обьект, с которым проверяется столкновение.
         Returns:
@@ -91,9 +102,8 @@ class Ball:
 
 
 class Bomb:
-    def __init__(self, x=40, y=450):
+    def __init__(self, x, y):
         """ Конструктор класса bomb
-
         Args:
         x - начальное положение мяча по горизонтали
         y - начальное положение мяча по вертикали
@@ -125,7 +135,6 @@ class Bomb:
 
     def move(self):
         """Переместить мяч по прошествии единицы времени.
-
         Метод описывает перемещение мяча за один кадр перерисовки. То есть, обновляет значения
         self.x и self.y с учетом скоростей self.vx и self.vy, силы гравитации, действующей на мяч,
         и стен по краям окна (размер окна 800х600)."""
@@ -163,10 +172,10 @@ class Gun:
     def __init__(self):
         self.f2_power = 10
         self.f2_on = 0
-        self.an = 1
-        self.x = (20, 50)
-        self.y = (450 ,420)
-        self.id = canvas.create_line(self.x[0], self.y[0], self.x[1], self.y[1])
+        self.an = 0
+        self.x = 20
+        self.y = 450
+        self.id = canvas.create_line(self.x, self.y, self.x + 20, self.y + 20, width=5)
         self.kx, self.ky = 1, 1
 
     def fire2_start(self, event):
@@ -174,15 +183,15 @@ class Gun:
 
     def fire2_end(self, event):
         """Выстрел мячом.
-
         Происходит при отпускании кнопки мыши.
         Начальные значения компонент скорости мяча vx и vy зависят от положения мыши.
         """
         global balls, Bullet
         Bullet += 1
-        new_ball = Ball()
+        new_ball = Ball(self.x + mod_abs(self.f2_power, 20) * math.cos(self.an),
+                        self.y + mod_abs(self.f2_power, 20) * math.sin(self.an))
         new_ball.r += 5
-        self.an = math.atan((event.y - new_ball.y) / (event.x - new_ball.x))
+        self.an = define_angle(event.y - self.y, event.x - self.x)
         new_ball.vx = self.f2_power * math.cos(self.an)
         new_ball.vy = - self.f2_power * math.sin(self.an)
         balls += [new_ball]
@@ -197,9 +206,10 @@ class Gun:
         """
         global bombs, Bullet
         Bullet += 1
-        new_bomb= Bomb()
+        new_bomb = Bomb(self.x + mod_abs(self.f2_power, 20) * math.cos(self.an),
+                        self.y + mod_abs(self.f2_power, 20) * math.sin(self.an))
         new_bomb.r += 5
-        self.an = math.atan((event.y - new_bomb.y) / (event.x - new_bomb.x))
+        self.an = define_angle(event.y - self.y, event.x - self.x)
         new_bomb.vx = self.f2_power * math.cos(self.an)
         new_bomb.vy = - self.f2_power * math.sin(self.an)
         bombs += [new_bomb]
@@ -209,14 +219,14 @@ class Gun:
     def targetting(self, event=0):
         """Прицеливание. Зависит от положения мыши."""
         if event:
-            self.an = math.atan((event.y - 450) / (event.x - 20))
+            self.an = define_angle(event.y - self.y, event.x - self.x)
         if self.f2_on:
             canvas.itemconfig(self.id, fill='orange')
         else:
             canvas.itemconfig(self.id, fill='black')
-        canvas.coords(self.id, 20, 450,
-                      20 + max(self.f2_power, 20) * math.cos(self.an),
-                      450 + max(self.f2_power, 20) * math.sin(self.an)
+        canvas.coords(self.id, self.x, self.y,
+                      self.x + max(self.f2_power, 20) * math.cos(self.an),
+                      self.y + max(self.f2_power, 20) * math.sin(self.an)
                       )
 
     def power_up(self):
@@ -228,8 +238,12 @@ class Gun:
             canvas.itemconfig(self.id, fill='black')
 
     def move(self):
-        self.x = (self.x[0] + self.kx * 5, self.x[1] + self.kx * 5)
-        self.y = (self.x[0] + self.ky * 5, self.y[1] + self.ky * 5)
+        self.x += self.kx * 3
+        self.y += self.ky * 3
+        canvas.coords(self.id, self.x, self.y,
+                      self.x + max(self.f2_power, 20) * math.cos(self.an),
+                      self.y + max(self.f2_power, 20) * math.sin(self.an)
+                      )
 
     def move_left(self, event):
         self.kx, self.ky = -1, 0
@@ -253,7 +267,6 @@ class Target1:
         self.points = 0
         self.live = 1
         self.id = canvas.create_oval(0, 0, 0, 0)
-        self.id_points = canvas.create_text(30, 30, text=self.points, font='28')
         self.x = rnd(600, 780)
         self.y = rnd(300, 550)
         self.r = rnd(5, 50)
@@ -267,7 +280,6 @@ class Target1:
         """Попадание шарика в цель."""
         canvas.coords(self.id, -10, -10, -10, -10)
         self.points += points
-        canvas.itemconfig(self.id_points, text=self.points)
 
     def move(self):
         if self.x >= 800:
@@ -297,7 +309,6 @@ class Target2:
         self.points = 0
         self.live = 1
         self.id = canvas.create_rectangle(0, 0, 0, 0)
-        self.id_points = canvas.create_text(770, 30, text=self.points, font='28')
         self.x = rnd(600, 780)
         self.y = rnd(300, 550)
         self.r = rnd(5, 50)
@@ -311,7 +322,6 @@ class Target2:
         """Попадание шарика в цель."""
         canvas.coords(self.id, -10, -10, -10, -10)
         self.points += points
-        canvas.itemconfig(self.id_points, text=self.points)
 
     def move(self):
         accel = rnd(-10, 10)
@@ -410,10 +420,10 @@ def new_game():
         g1.power_up()
         canvas.bind('<ButtonRelease-1>', g1.fire2_end)
         canvas.bind('<ButtonRelease-3>', g1.fire_another)
-        canvas.bind('w', g1.move_up)
-        canvas.bind('a', g1.move_left)
-        canvas.bind('s', g1.move_down)
-        canvas.bind('d', g1.move_right)
+        root.bind('w', g1.move_up)
+        root.bind('a', g1.move_left)
+        root.bind('s', g1.move_down)
+        root.bind('d', g1.move_right)
         time.sleep(delta_t)
     canvas.itemconfig(screen1, text='')
     canvas.delete(Gun)
